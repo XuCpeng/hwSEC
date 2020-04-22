@@ -208,3 +208,4 @@ dmypy.json
 .idea/misc.xml
 .idea/modules.xml
 .idea/vcs.xml
+/cn/medemede/result.txt

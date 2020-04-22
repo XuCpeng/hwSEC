@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
 from copy import copy
+import sys
+
+sys.setrecursionlimit(10000000)
 
 
 def get_link(o, s, i):
     if i > 7:
         return
     for t in link_list[s]:
-        if (o == t) & (i > 2):
+        if (o == t) and (i > 2):
             res.append(copy(link))
-        if (t > o) & (t not in link):
+        if (t > o) and (t not in link):
             link.append(t)
             get_link(o, t, i + 1)
             link.pop()
@@ -17,7 +20,7 @@ def get_link(o, s, i):
 
 if __name__ == '__main__':
 
-    with open("../Data/test_data.txt", "r") as f:
+    with open("2896262/test_data.txt", "r") as f:
         data = f.read()
     data = data.split('\n')[:-1]
     data = [i.split(',') for i in data]
@@ -36,9 +39,6 @@ if __name__ == '__main__':
     for i in link_root:
         link = [i]
         get_link(i, i, 1)
-
-    print(res)
-    print(len(res))
     res.sort()
     res = sorted(res, key=lambda i: len(i), reverse=False)
     file = open('result.txt', 'w')
