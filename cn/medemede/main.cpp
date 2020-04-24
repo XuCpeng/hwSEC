@@ -4,23 +4,25 @@
 #include <vector>
 #include <stdlib.h>
 #include <deque>
-
+# define CacheLineSize 64
+#include<ctime>
 using namespace std;
 
-int n = 0;
-unsigned int mx = 0;
-const int MaxSize = 280000;
-unsigned int stack[10];
+ int n = 0;
+ unsigned int mx = 0;
+ const int MaxSize = 280000;
+ unsigned int stack[10];
 
-static deque<unsigned int> Q[3000000];
-static int visited[MaxSize] = {0};
-static bool inStack[MaxSize] = {false};
-static struct Account {
+ deque<unsigned int> Q[3000000];
+ int visited[MaxSize] = {0};
+ bool inStack[MaxSize] = {false};
+
+ struct Account {
     unsigned int x;
     unsigned int y;
 } num[MaxSize];
 
-static struct ArcNode {
+ struct ArcNode {
     unsigned int adjVex;
     ArcNode *next;
 } adjList2[MaxSize];
@@ -69,12 +71,11 @@ void WriteFile(ofstream &outFile, deque<unsigned int> q, int i) {
 }
 
 void DeOrder(deque<unsigned int> q[], int count) {
-    string filename = "/projects/student/result.txt";
+    string filename = "../result.txt";
     ofstream outFile;
     outFile.open(filename);
     outFile << count << endl;
 
-#pragma omp parallel for num_threads(5) private(i, j)
     for (int i = 3; i <= 7; ++i) {
         for (int j = 1; j <= count; ++j) {
             if (q[j].size() == i) {
@@ -85,17 +86,17 @@ void DeOrder(deque<unsigned int> q[], int count) {
     outFile.close();
 }
 
-void DFS(unsigned int v, int &top, int &count) {
+void DFS(unsigned int  &v, int &top, int &count) {
     stack[++top] = v;
     inStack[v] = true;
-    ArcNode *p = new ArcNode;
-    p = adjList2[v].next;
+    ArcNode *p= adjList2[v].next;
+
     if (top < 7) {
         while (p != nullptr) {
             if (!visited[p->adjVex]) {
                 if (!inStack[p->adjVex]) {
                     DFS(p->adjVex, top, count);
-                } else if (stack[0] == p->adjVex && top >= 2) {
+                } else if (stack[0] == p->adjVex && top > 1) {
                     count++;
                     for (int j = 0; j <= top; j++) {
                         Q[count].push_back(stack[j]);
@@ -104,7 +105,7 @@ void DFS(unsigned int v, int &top, int &count) {
             }
             p = p->next;
         }
-        delete p;
+
     }
     inStack[stack[top--]] = false;
 }
@@ -112,13 +113,12 @@ void DFS(unsigned int v, int &top, int &count) {
 void CheckCircle() {
     int count = 0;
     int top = -1;
-    ArcNode *p;
-#pragma omp parallel for num_threads(5) private(i)
+
     for (int i = 0; i <= mx; i++) {
         if (adjList2[i].next != nullptr) {
             stack[++top] = i;
             inStack[i] = true;
-            p = adjList2[i].next;
+            ArcNode *p = adjList2[i].next;
             while (p != nullptr) {
                 if (!visited[p->adjVex]) {
                     DFS(p->adjVex, top, count);
@@ -135,11 +135,13 @@ void CheckCircle() {
 
 
 int main() {
-    string file = "/data/test_data.txt";
+    clock_t startTime,endTime;
+    startTime = clock();
+    string file = "../test_data.txt";
     readTxt(file);
-#pragma omp parallel for num_threads(5) private(k)
+
     for (int k = 0; k < n; k++) {
-        auto *s = new ArcNode;
+        ArcNode *s = new ArcNode;
         s->adjVex = num[k].y;
         ArcNode *p = &adjList2[num[k].x];
         while (p->next != nullptr && p->next->adjVex < s->adjVex) {
@@ -149,5 +151,7 @@ int main() {
         p->next = s;
     }
     CheckCircle();
+    endTime = clock();
+    cout << "The run time is:" <<(double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
     return 0;
 }
